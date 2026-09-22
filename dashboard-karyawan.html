@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRIS Pro Enterprise - Portal Karyawan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
+
+    <!-- NAVBAR KARYAWAN -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center flex-wrap gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2 rounded-xl font-bold text-sm shadow-md">🏢</div>
+                <div>
+                    <span class="font-bold text-slate-900 text-xs block">PT Digital Nusantara Mandiri</span>
+                    <span id="navUserBadge" class="text-xs text-amber-600 font-semibold">Portal Karyawan Enterprise</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="switchKaryawanTab('profil')" id="tabMenuProfil" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 transition">👤 Beranda</button>
+                <button onclick="switchKaryawanTab('absen')" id="tabMenuAbsen" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">⏰ Absen Harian</button>
+                <button onclick="switchKaryawanTab('cuti')" id="tabMenuCuti" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">📅 Cuti</button>
+                <button onclick="switchKaryawanTab('reimburse')" id="tabMenuReimburse" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">💳 Klaim</button>
+                <button onclick="switchKaryawanTab('dokumen')" id="tabMenuDokumen" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">📂 Dokumen</button>
+                <button onclick="switchKaryawanTab('gaji')" id="tabMenuGaji" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">💰 Slip Gaji</button>
+                <button onclick="logout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold px-3 py-2 rounded-xl transition border border-rose-200 ml-2">🚪 Keluar</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 pt-8 space-y-6">
+
+        <!-- KOTAK PENGUMUMAN PERUSAHAAN -->
+        <div id="employeeAnnouncementContainer" class="space-y-3">
+            <!-- Render via JS -->
+        </div>
+
+        <!-- 1. HALAMAN PROFIL & BERANDA -->
+        <section id="sectionProfil" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8">
+            <div class="flex flex-col md:flex-row items-center gap-6 border-b border-slate-100 pb-6 mb-6">
+                <div class="relative">
+                    <div id="profileAvatarContainer" class="w-24 h-24 bg-gradient-to-tr from-amber-500 to-indigo-600 text-white rounded-3xl flex items-center justify-center text-3xl font-black shadow-lg overflow-hidden">
+                        <span id="profileInitials">BS</span>
+                    </div>
+                </div>
+                
+                <div class="text-center md:text-left flex-1">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                        <div>
+                            <h1 id="profileName" class="text-2xl font-extrabold text-slate-900">Nama Karyawan</h1>
+                            <p id="profileDivision" class="text-xs font-semibold text-indigo-600 uppercase tracking-wider mt-0.5">Divisi</p>
+                        </div>
+                        <span class="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100">Karyawan Tetap</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-50 text-xs text-slate-600">
+                        <div><span class="block text-slate-400">NIP:</span> <strong id="profileNip" class="text-slate-800">-</strong></div>
+                        <div><span class="block text-slate-400">Email:</span> <strong id="profileEmail" class="text-slate-800 truncate block">-</strong></div>
+                        <div><span class="block text-slate-400">Status Pajak:</span> <strong class="text-slate-800">TK/0</strong></div>
+                        <div><span class="block text-slate-400">Grade:</span> <strong id="profileGrade" class="text-emerald-700">Grade A</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kartu Statistik -->
+            <div class="grid md:grid-cols-3 gap-5 mb-8">
+                <div class="bg-amber-50/60 border border-amber-100 rounded-2xl p-5">
+                    <span class="text-xs font-bold text-amber-800 uppercase block mb-1">Jatah Cuti</span>
+                    <div class="flex items-baseline gap-2">
+                        <h3 id="sisaCutiAngka" class="text-3xl font-black text-amber-900">12</h3>
+                        <span class="text-xs text-amber-700 font-semibold">Hari Tersisa</span>
+                    </div>
+                    <p id="terpakaiCutiInfo" class="text-[11px] text-amber-600 mt-2">Terpakai: 0 hari</p>
+                </div>
+
+                <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-5">
+                    <span class="text-xs font-bold text-indigo-800 uppercase block mb-1">Absensi Bulan Ini</span>
+                    <div class="grid grid-cols-4 gap-1 text-center mt-2">
+                        <div class="bg-white/80 p-1.5 rounded-xl border border-indigo-100"><span class="block text-[10px] text-slate-400">Hadir</span><strong id="statHadir" class="text-sm text-slate-800">20</strong></div>
+                        <div class="bg-white/80 p-1.5 rounded-xl border border-indigo-100"><span class="block text-[10px] text-slate-400">Izin</span><strong id="statIzin" class="text-sm text-slate-800">0</strong></div>
+                        <div class="bg-white/80 p-1.5 rounded-xl border border-indigo-100"><span class="block text-[10px] text-slate-400">Sakit</span><strong id="statSakit" class="text-sm text-slate-800">0</strong></div>
+                        <div class="bg-white/80 p-1.5 rounded-xl border border-indigo-100"><span class="block text-[10px] text-slate-400">Alfa</span><strong id="statAlfa" class="text-sm text-rose-600">0</strong></div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-5">
+                    <span class="text-xs font-bold text-emerald-800 uppercase block mb-1">Skor Kinerja</span>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h3 id="statSkorKinerja" class="text-3xl font-black text-emerald-900">88.5</h3>
+                        <span class="text-xs bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-bold">Terverifikasi</span>
+                    </div>
+                    <p class="text-[11px] text-emerald-700 mt-2">Performa Sangat Memuaskan</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. HALAMAN ABSENSI MANDIRI (CHECK-IN / CHECK-OUT) -->
+<section id="sectionAbsen" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8">
+    <div class="mb-6 text-center">
+        <h2 class="text-xl font-bold text-slate-900">Absensi Kehadiran Harian</h2>
+        <p class="text-xs text-slate-500 mt-1">Lakukan Check-in dengan foto ber-timestamp & lokasi otomatis.</p>
+    </div>
+    
+    <div class="max-w-md mx-auto bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center space-y-4">
+        <div class="text-3xl font-black text-slate-900" id="liveClock">00:00:00 WIB</div>
+        <p class="text-xs text-slate-500">Tanggal: <span id="currentDateAbsen">22 September 2026</span></p>
+
+        <!-- Input File Kamera Tersembunyi -->
+        <input type="file" id="cameraInput" accept="image/*" capture="user" class="hidden" onchange="processStampedPhoto(event)">
+
+        <!-- Status Lokasi -->
+        <p id="locationStatus" class="text-xs text-slate-600 font-medium">Mendeteksi lokasi GPS...</p>
+
+        <div class="flex gap-3 pt-2">
+            <button onclick="triggerCamera()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition text-xs shadow-md">
+                📸 Check-in dengan Kamera
+            </button>
+            <button onclick="doCheckOut()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold py-3 rounded-xl transition text-xs shadow-md">
+                📤 Check-out Pulang
+            </button>
+        </div>
+        <p id="absenStatusInfo" class="text-xs font-semibold text-indigo-600 mt-2">Status hari ini: Belum absen</p>
+    </div>
+</section>
+
+<!-- Canvas Tersembunyi untuk Menempel Teks ke Foto -->
+<canvas id="watermarkCanvas" class="hidden"></canvas>
+
+<!-- Panggil file JavaScript eksternal di sini -->
+<script src="absen.js"></script>
+
+        <!-- 3. HALAMAN CUTI -->
+        <section id="sectionCuti" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="mb-6 text-center">
+                <h2 class="text-xl font-bold text-slate-900">Formulir Pengajuan Cuti & Riwayat</h2>
+                <p class="text-xs text-slate-500 mt-1">Ajukan cuti dan pantau riwayat persetujuannya.</p>
+            </div>
+            <form id="leaveForm" class="space-y-4 bg-amber-50/40 p-5 rounded-2xl border border-amber-100 mb-8">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nama Karyawan</label>
+                    <input type="text" id="leaveNama" readonly class="w-full px-4 py-2 text-sm border border-slate-300 bg-slate-100 text-slate-600 rounded-xl font-medium">
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Jenis</label>
+                        <select id="leaveType" class="w-full px-4 py-2 text-sm border border-slate-300 rounded-xl bg-white">
+                            <option value="Cuti Tahunan">Cuti Tahunan</option>
+                            <option value="Izin Sakit">Izin Sakit</option>
+                            <option value="Izin Keperluan Pribadi">Izin Keperluan Pribadi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Tanggal Mulai s/d Selesai</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="date" id="leaveStart" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                            <input type="date" id="leaveEnd" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Alasan</label>
+                    <textarea id="leaveReason" rows="2" required class="w-full px-4 py-2 text-sm border border-slate-300 rounded-xl bg-white"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-md">
+                    📅 Kirim Permohonan Cuti
+                </button>
+            </form>
+            <h3 class="text-sm font-bold text-slate-800 mb-3">Riwayat Pengajuan Cuti:</h3>
+            <div id="employeeLeaveList" class="space-y-3">
+                <!-- Render via JS -->
+            </div>
+        </section>
+
+        <!-- 4. HALAMAN KLAIM & REIMBURSEMENT -->
+        <section id="sectionReimburse" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="mb-6 text-center">
+                <h2 class="text-xl font-bold text-slate-900">Klaim Biaya & Reimbursement</h2>
+                <p class="text-xs text-slate-500 mt-1">Ajukan penggantian biaya operasional, medis, atau transport.</p>
+            </div>
+            <form id="reimburseForm" class="space-y-4 bg-indigo-50/40 p-5 rounded-2xl border border-indigo-100 mb-8">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Jenis Klaim</label>
+                    <select id="reimType" class="w-full px-4 py-2 text-sm border border-slate-300 rounded-xl bg-white">
+                        <option value="Klaim Medis / Kesehatan">Klaim Medis / Kesehatan</option>
+                        <option value="Biaya Transport / Perjalanan Dinas">Biaya Transport / Perjalanan Dinas</option>
+                        <option value="Pembelian Perlengkapan Kantor">Pembelian Perlengkapan Kantor</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nominal (Rp)</label>
+                    <input type="number" id="reimAmount" required placeholder="Cth: 250000" class="w-full px-4 py-2 text-sm border border-slate-300 rounded-xl bg-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Keterangan / Keperluan</label>
+                    <textarea id="reimDesc" rows="2" required placeholder="Tuliskan keterangan..." class="w-full px-4 py-2 text-sm border border-slate-300 rounded-xl bg-white"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-md">
+                    💳 Ajukan Klaim Reimbursement
+                </button>
+            </form>
+            <h3 class="text-sm font-bold text-slate-800 mb-3">Riwayat Klaim Anda:</h3>
+            <div id="employeeReimburseList" class="space-y-3">
+                <!-- Render via JS -->
+            </div>
+        </section>
+
+        <!-- 5. HALAMAN DOKUMEN KARYAWAN (LOCKER) -->
+        <section id="sectionDokumen" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="mb-6 text-center">
+                <h2 class="text-xl font-bold text-slate-900">Penyimpanan Dokumen Karyawan (Document Locker)</h2>
+                <p class="text-xs text-slate-500 mt-1">Unggah dokumen penting seperti KTP, NPWP, atau Sertifikat Pelatihan.</p>
+            </div>
+            <form id="docUploadForm" class="space-y-4 bg-emerald-50/40 p-5 rounded-2xl border border-emerald-100 mb-8">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nama / Jenis Dokumen</label>
+                    <input type="text" id="docName" required placeholder="Cth: Scan KTP / NPWP / Sertifikat" class="w-full px-4 py-2 text-sm border border-slate-300 rounded-xl bg-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">File Dokumen</label>
+                    <input type="file" id="docFile" required class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-md">
+                    📂 Unggah Dokumen ke Locker
+                </button>
+            </form>
+            <h3 class="text-sm font-bold text-slate-800 mb-3">Daftar Dokumen Tersimpan:</h3>
+            <div id="employeeDocList" class="space-y-3">
+                <!-- Render via JS -->
+            </div>
+        </section>
+
+        <!-- 6. HALAMAN ARSIP SLIP GAJI -->
+        <section id="sectionGaji" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="mb-6 text-center">
+                <h2 class="text-xl font-bold text-slate-900">Arsip Riwayat Slip Gaji Bulanan</h2>
+                <p class="text-xs text-slate-500 mt-1">Pilih dan unduh slip gaji resmi bulan-bulan sebelumnya.</p>
+            </div>
+            <div class="space-y-6">
+                <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-800 uppercase mb-1">Pilih Periode Slip Gaji</label>
+                        <select id="selectArsipSlip" onchange="renderEmployeeSlip(this.value)" class="px-4 py-2 text-xs border border-emerald-200 rounded-xl bg-white font-medium text-slate-700">
+                            <!-- Render via JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <div id="printableSlip" class="border border-emerald-200 rounded-2xl p-6 bg-white shadow-sm">
+                    <div class="border-b pb-4 mb-4 flex justify-between items-center">
+                        <div>
+                            <span id="slipPeriodeLabel" class="text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-md">Periode: September 2026</span>
+                            <h3 class="text-base font-bold text-slate-900 mt-1">PT. DIGITAL NUSANTARA MANDIRI</h3>
+                        </div>
+                        <div class="text-right text-xs text-slate-500">
+                            <p>Slip Gaji Karyawan Resmi</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-slate-700 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <p class="flex justify-between"><span>Nama Karyawan:</span> <strong id="slipNama">-</strong></p>
+                        <p class="flex justify-between"><span>Gaji Pokok:</span> <strong id="slipPokok">Rp 0</strong></p>
+                        <p class="flex justify-between"><span>Uang Lembur:</span> <strong id="slipLembur">Rp 0</strong></p>
+                        <p class="flex justify-between text-rose-600"><span>Potongan BPJS (3%):</span> <strong id="slipBpjs">- Rp 0</strong></p>
+                        <p class="flex justify-between text-rose-600"><span>Potongan PPh 21:</span> <strong id="slipPph21">- Rp 0</strong></p>
+                        <div class="pt-3 border-t border-slate-200 flex justify-between text-base font-bold text-emerald-700">
+                            <span>Take Home Pay:</span> 
+                            <span id="slipTotal">Rp 0</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8 mt-10 pt-4 text-center text-xs text-slate-700">
+                        <div>
+                            <p class="mb-16">Penerima,</p>
+                            <p class="font-bold underline text-slate-900" id="signKaryawanName">-</p>
+                        </div>
+                        <div>
+                            <p class="mb-16">Depok, <span id="currentDateSlip">22 September 2026</span><br>Disetujui Oleh,</p>
+                            <p class="font-bold underline text-slate-900">Siti Aminah, S.E.</p>
+                            <p class="text-[11px] text-slate-500">HR Manager</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-8 no-print">
+                        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition">🖨️ Cetak / Simpan PDF</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

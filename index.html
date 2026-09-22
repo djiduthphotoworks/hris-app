@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRIS Pro Enterprise - Masuk & Pendaftaran</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden p-8">
+        <div class="text-center mb-6">
+            <div class="inline-block bg-indigo-600 text-white p-3 rounded-2xl font-bold text-xl shadow-md mb-2">🏢</div>
+            <h1 class="text-2xl font-extrabold text-slate-900">HRIS Pro Enterprise</h1>
+            <p id="authSubtitle" class="text-xs text-slate-500 mt-1">Sistem Manajemen Sumber Daya Manusia Terpadu</p>
+        </div>
+
+        <!-- Tombol Switch Tab -->
+        <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
+            <button onclick="switchAuthTab('login')" id="tabLogin" class="flex-1 py-2 text-xs font-semibold rounded-lg transition bg-white text-indigo-600 shadow-sm">Masuk</button>
+            <button onclick="switchAuthTab('register')" id="tabRegister" class="flex-1 py-2 text-xs font-semibold rounded-lg transition text-slate-600 hover:text-slate-900">Daftar Akun</button>
+        </div>
+
+        <!-- Form Login -->
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Email / NIP</label>
+                <input type="text" id="loginEmail" required placeholder="Cth: budi@perusahaan.com atau 101" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Kata Sandi</label>
+                <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition text-sm shadow-md shadow-indigo-100">
+                Masuk ke Sistem ➔
+            </button>
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 space-y-1">
+                <p class="font-bold">💡 Akun Demo:</p>
+                <p>• HR: <code>siti@perusahaan.com</code> / <code>123456</code></p>
+                <p>• Karyawan: <code>budi@perusahaan.com</code> / <code>123456</code></p>
+            </div>
+        </form>
+
+        <!-- Form Register -->
+        <form id="registerForm" class="space-y-4 hidden">
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nama Lengkap</label>
+                <input type="text" id="regName" required placeholder="Nama Karyawan" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Email Perusahaan</label>
+                    <input type="email" id="regEmail" required placeholder="nama@perusahaan.com" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">NIP</label>
+                    <input type="text" id="regNip" required placeholder="Cth: 103" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Role Akun</label>
+                    <select id="regRole" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                        <option value="employee">Karyawan</option>
+                        <option value="hr">HR Manager</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Divisi</label>
+                    <input type="text" id="regDivisi" required placeholder="Cth: Marketing" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Kata Sandi</label>
+                <input type="password" id="regPassword" required placeholder="••••••••" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Foto Profil (Opsional)</label>
+                <input type="file" id="regFoto" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-md">
+                Daftar & Masuk ➔
+            </button>
+        </form>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

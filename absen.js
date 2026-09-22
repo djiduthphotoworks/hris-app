@@ -1,0 +1,96 @@
+let currentAddress = "Mendapatkan lokasi...";
+let currentLatitude = null;
+let currentLongitude = null;
+
+// 1. Ambil Lokasi GPS & Alamat saat halaman dibuka
+function initLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                currentLatitude = position.coords.latitude;
+                currentLongitude = position.coords.longitude;
+                
+                try {
+                    let response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLatitude}&lon=${currentLongitude}`);
+                    let data = await response.json();
+                    currentAddress = data.display_name || `${currentLatitude}, ${currentLongitude}`;
+                } catch (e) {
+                    currentAddress = `Lat: ${currentLatitude.toFixed(5)}, Long: ${currentLongitude.toFixed(5)}`;
+                }
+                
+                document.getElementById('locationStatus').innerText = "Lokasi siap: " + currentAddress.substring(0, 45) + "...";
+                document.getElementById('locationStatus').className = "text-xs text-emerald-600 font-semibold";
+            },
+            (error) => {
+                document.getElementById('locationStatus').innerText = "GPS Gagal / Nonaktif. Harap aktifkan GPS.";
+                document.getElementById('locationStatus').className = "text-xs text-rose-600 font-semibold";
+            },
+            { enableHighAccuracy: true }
+        );
+    }
+}
+
+window.onload = initLocation;
+
+// 2. Fungsi saat tombol Check-in diklik -> Buka Kamera HP
+function triggerCamera() {
+    document.getElementById('cameraInput').click();
+}
+
+// 3. Fungsi memproses foto dan menempelkan teks (Timestamp & Lokasi)
+function processStampedPhoto(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.getElementById('watermarkCanvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            const fontSize = Math.max(canvas.width * 0.035, 24);
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            ctx.fillRect(0, canvas.height - (fontSize * 5.5), canvas.width, fontSize * 5.5);
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.font = `bold ${fontSize}px sans-serif`;
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const dateString = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const dayString = now.toLocaleDateString('id-ID', { weekday: 'long' });
+
+            let startY = canvas.height - (fontSize * 4.2);
+            ctx.fillText(timeString, fontSize * 0.8, startY);
+
+            ctx.font = `${fontSize * 0.75}px sans-serif`;
+            ctx.fillText(`${dateString}  ${dayString}`, fontSize * 4.2, startY);
+
+            ctx.font = `${fontSize * 0.6}px sans-serif`;
+            let wrappedAddress = currentAddress.match(/.{1,50}/g);
+            let addressY = startY + (fontSize * 1.2);
+            
+            if (wrappedAddress) {
+                wrappedAddress.forEach((line, index) => {
+                    ctx.fillText(line, fontSize * 0.8, addressY + (index * fontSize * 0.75));
+                });
+            }
+
+            const finalPhotoData = canvas.toDataURL('image/jpeg', 0.9);
+
+            document.getElementById('absenStatusInfo').innerText = "Status: Foto berhasil diberi cap waktu & lokasi! Siap dikirim.";
+            console.log("Foto Berwatermark Siap Dikirim ke Server:", finalPhotoData);
+        }
+        img.src = e.target.result;
+    }
+    reader.readAsDataURL(file);
+}
+
+function doCheckOut() {
+    alert("Fitur Check-out diproses.");
+}

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRIS Pro Enterprise - Dashboard HR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-24">
+
+    <!-- NAVBAR ADMIN -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center flex-wrap gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-600 text-white p-2 rounded-xl font-bold text-sm shadow-md">🏢</div>
+                <div>
+                    <span class="font-bold text-slate-900 text-xs block">PT Digital Nusantara Mandiri</span>
+                    <span id="navUserBadge" class="text-xs text-emerald-600 font-semibold">HR Manager Enterprise</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <button onclick="switchAdminTab('audit')" id="tabAudit" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 transition">📊 Performa</button>
+                <button onclick="switchAdminTab('master')" id="tabMaster" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">👥 Karyawan</button>
+                <button onclick="switchAdminTab('absensi')" id="tabAbsensi" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">📋 Absensi</button>
+                <button onclick="switchAdminTab('leave')" id="tabLeave" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">📅 Cuti</button>
+                <button onclick="switchAdminTab('reimburse')" id="tabReimburse" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">💳 Klaim</button>
+                <button onclick="switchAdminTab('payroll')" id="tabPayroll" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">💰 Payroll</button>
+                <button onclick="switchAdminTab('announcement')" id="tabAnnouncement" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">📢 Info</button>
+                <button onclick="logout()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold px-3 py-2 rounded-xl transition border border-rose-200 ml-2">🚪 Keluar</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 pt-8 space-y-6">
+
+        <!-- 1. MODUL AUDIT & PENILAIAN KINERJA -->
+        <section id="modulAudit" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8">
+            <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Penilaian Kinerja Karyawan (Appraisal 360°)</h2>
+                    <p class="text-xs text-slate-500 mt-1">Evaluasi performa berkala, nilai kedisiplinan, dan grade staff.</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-5 mb-8">
+                <div class="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-5">
+                    <span class="text-xs font-bold text-emerald-800 uppercase block mb-1">Rata-rata Kinerja</span>
+                    <h3 class="text-3xl font-black text-emerald-900">89.4 <span class="text-sm font-medium">/ 100</span></h3>
+                </div>
+                <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-5">
+                    <span class="text-xs font-bold text-indigo-800 uppercase block mb-1">Total Karyawan Aktif</span>
+                    <h3 id="statTotalPegawai" class="text-3xl font-black text-indigo-900">2 Staff</h3>
+                </div>
+                <div class="bg-amber-50/60 border border-amber-100 rounded-2xl p-5">
+                    <span class="text-xs font-bold text-amber-800 uppercase block mb-1">Pending Approval</span>
+                    <h3 id="statPendingCuti" class="text-3xl font-black text-amber-900">0 Permohonan</h3>
+                </div>
+            </div>
+
+            <!-- Form Penilaian Kinerja oleh HR -->
+            <form id="appraisalForm" class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+                <h3 class="text-sm font-bold text-slate-900">Form Evaluasi Nilai Kinerja Karyawan</h3>
+                <div class="grid md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Pilih Karyawan</label>
+                        <select id="appraisalNip" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                            <!-- Render via JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Skor Kinerja (0 - 100)</label>
+                        <input type="number" id="appraisalScore" required min="0" max="100" value="88" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Grade</label>
+                        <select id="appraisalGrade" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                            <option value="Grade A (Sangat Memuaskan)">Grade A (Sangat Memuaskan)</option>
+                            <option value="Grade B (Baik)">Grade B (Baik)</option>
+                            <option value="Grade C (Cukup)">Grade C (Cukup)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md">Simpan Penilaian Kinerja</button>
+            </form>
+        </section>
+
+        <!-- 2. MODUL MASTER DATA KARYAWAN -->
+        <section id="modulMaster" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Manajemen Karyawan (Master Data & Dokumen)</h2>
+                    <p class="text-xs text-slate-500 mt-1">Kelola data pegawai serta pantau dokumen penting mereka.</p>
+                </div>
+                <button onclick="openAddEmployeeModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md">➕ Tambah Karyawan</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-100 text-slate-700 uppercase font-semibold">
+                        <tr>
+                            <th class="p-3 rounded-l-xl">Nama & Email</th>
+                            <th class="p-3">NIP</th>
+                            <th class="p-3">Divisi</th>
+                            <th class="p-3">Dokumen Terunggah</th>
+                            <th class="p-3 rounded-r-xl text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="masterEmployeeTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+                        <!-- Render via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. MODUL REKAP ABSENSI -->
+        <section id="modulAbsensi" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Rekap Absensi & Kehadiran Bulanan</h2>
+                    <p class="text-xs text-slate-500 mt-1">Data kehadiran otomatis dari check-in karyawan atau pembaruan manual HR.</p>
+                </div>
+                <button onclick="exportAbsensiCSV()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md">📥 Ekspor Excel (.CSV)</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-100 text-slate-700 uppercase font-semibold">
+                        <tr>
+                            <th class="p-3 rounded-l-xl">Nama Karyawan</th>
+                            <th class="p-3 text-center">Hadir</th>
+                            <th class="p-3 text-center">Izin</th>
+                            <th class="p-3 text-center">Sakit</th>
+                            <th class="p-3 text-center">Alfa</th>
+                            <th class="p-3 rounded-r-xl text-center">Simpan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="absensiTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+                        <!-- Render via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. MODUL APPROVAL CUTI -->
+        <section id="modulLeaveAdmin" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-slate-900">Pusat Persetujuan Cuti & Izin</h2>
+                <p class="text-xs text-slate-500 mt-1">Dilengkapi sisa cuti tahunan dan histori tanggal cuti sebelumnya.</p>
+            </div>
+            <div id="adminLeaveList" class="space-y-4">
+                <!-- Render via JS -->
+            </div>
+        </section>
+
+        <!-- 5. MODUL APPROVAL KLAIM & REIMBURSEMENT -->
+        <section id="modulReimburseAdmin" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-slate-900">Pusat Validasi Klaim & Reimbursement</h2>
+                <p class="text-xs text-slate-500 mt-1">Tinjau permohonan klaim biaya medis, transport, atau operasional karyawan.</p>
+            </div>
+            <div id="adminReimburseList" class="space-y-4">
+                <!-- Render via JS -->
+            </div>
+        </section>
+
+        <!-- 6. MODUL PAYROLL & REKAP GAJI -->
+        <section id="modulPayroll" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Kalkulator Gaji & Rekap Payroll Perusahaan</h2>
+                    <p class="text-xs text-slate-500 mt-1">Hitung gaji, terbitkan slip resmi, dan unduh rekap keuangan.</p>
+                </div>
+                <button onclick="exportPayrollCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md">📥 Ekspor Payroll (.CSV)</button>
+            </div>
+
+            <!-- Form Hitung Gaji -->
+            <form id="payrollForm" class="space-y-4 bg-emerald-50/40 p-5 rounded-2xl border border-emerald-100 mb-8">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Pilih Karyawan</label>
+                        <select id="payNamaSelect" class="w-full px-4 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                            <!-- Render via JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Periode Gaji</label>
+                        <input type="text" id="payPeriode" value="September 2026" class="w-full px-4 py-2 text-xs border border-slate-300 rounded-xl bg-white font-medium">
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Gaji Pokok (Rp)</label>
+                        <input type="number" id="gajiPokok" required value="6500000" class="w-full px-4 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Jam Lembur</label>
+                        <input type="number" id="lemburJam" required value="5" class="w-full px-4 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Tarif Lembur / Jam (Rp)</label>
+                        <input type="number" id="tarifLembur" required value="80000" class="w-full px-4 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-md">
+                    🧮 Hitung & Terbitkan Slip Gaji
+                </button>
+            </form>
+
+            <!-- Area Slip Gaji & Rekap Payroll -->
+            <div class="space-y-6">
+                <div id="printableSlip" class="border border-emerald-200 rounded-2xl p-6 bg-white shadow-sm hidden">
+                    <div class="border-b pb-4 mb-4 flex justify-between items-center">
+                        <div>
+                            <span id="slipPeriodeLabel" class="text-xs font-bold px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-md">Periode: September 2026</span>
+                            <h3 class="text-base font-bold text-slate-900 mt-1">PT. DIGITAL NUSANTARA MANDIRI</h3>
+                        </div>
+                        <div class="text-right text-xs text-slate-500">
+                            <p>Slip Gaji Resmi Enterprise</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-slate-700 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <p class="flex justify-between"><span>Nama Karyawan:</span> <strong id="slipNama">-</strong></p>
+                        <p class="flex justify-between"><span>Gaji Pokok:</span> <strong id="resPayPokok">Rp 0</strong></p>
+                        <p class="flex justify-between"><span>Uang Lembur:</span> <strong id="resUangLembur">Rp 0</strong></p>
+                        <p class="flex justify-between text-rose-600"><span>Potongan BPJS (3%):</span> <strong id="resBpjs">- Rp 0</strong></p>
+                        <p class="flex justify-between text-rose-600"><span>Potongan PPh 21:</span> <strong id="resPph21">- Rp 0</strong></p>
+                        <div class="pt-3 border-t border-slate-200 flex justify-between text-base font-bold text-emerald-700">
+                            <span>Take Home Pay:</span> 
+                            <span id="resTotalGaji">Rp 0</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8 mt-10 pt-4 text-center text-xs text-slate-700">
+                        <div>
+                            <p class="mb-16">Penerima,</p>
+                            <p class="font-bold underline text-slate-900" id="signAdminKaryawanName">-</p>
+                        </div>
+                        <div>
+                            <p class="mb-16">Depok, <span id="currentDateSlip">22 September 2026</span><br>Disetujui Oleh,</p>
+                            <p class="font-bold underline text-slate-900">Siti Aminah, S.E.</p>
+                            <p class="text-[11px] text-slate-500">HR Manager</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-8 no-print">
+                        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition">🖨️ Cetak / Simpan PDF</button>
+                    </div>
+                </div>
+
+                <!-- Rekap Payroll Keseluruhan -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-slate-900 mb-3">📈 Rekapitulasi Total Pengeluaran Gaji Bulanan</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-200 text-slate-700 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-2.5 rounded-l-lg">Periode</th>
+                                    <th class="p-2.5">Karyawan</th>
+                                    <th class="p-2.5">Gaji Pokok</th>
+                                    <th class="p-2.5">Lembur</th>
+                                    <th class="p-2.5">Potongan</th>
+                                    <th class="p-2.5 rounded-r-lg">Take Home Pay</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rekapPayrollTableBody" class="divide-y divide-slate-200 text-slate-700">
+                                <!-- Render via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. MODUL PENGUMUMAN -->
+        <section id="modulAnnouncement" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8 hidden">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-slate-900">Buat Pengumuman Perusahaan</h2>
+                <p class="text-xs text-slate-500 mt-1">Sebarkan informasi penting agar tampil langsung di beranda karyawan.</p>
+            </div>
+            <form id="announcementForm" class="space-y-4 bg-indigo-50/40 p-5 rounded-2xl border border-indigo-100 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Judul Pengumuman</label>
+                    <input type="text" id="annTitle" required placeholder="Cth: Kebijakan Jam Kerja Baru" class="w-full px-4 py-2 text-sm border border-slate-300 rounded-xl bg-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Isi Pesan</label>
+                    <textarea id="annContent" rows="3" required placeholder="Tuliskan detail..." class="w-full px-4 py-2 text-sm border border-slate-300 rounded-xl bg-white"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-md">
+                    📢 Publikasikan Pengumuman
+                </button>
+            </form>
+            <div id="adminAnnouncementList" class="space-y-3">
+                <!-- Render via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Tambah Karyawan -->
+    <div id="addEmployeeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+            <h3 class="text-lg font-bold text-slate-900 mb-4">Tambah Karyawan Baru</h3>
+            <form id="addEmployeeForm" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Nama Lengkap</label>
+                    <input type="text" id="modalName" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Email</label>
+                        <input type="email" id="modalEmail" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">NIP</label>
+                        <input type="text" id="modalNip" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Divisi</label>
+                        <input type="text" id="modalDivision" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Kata Sandi</label>
+                        <input type="password" id="modalPass" required value="123456" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-3">
+                    <button type="button" onclick="closeAddEmployeeModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold py-2.5 rounded-xl transition">Batal</button>
+                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2.5 rounded-xl transition">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
