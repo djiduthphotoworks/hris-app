@@ -173,7 +173,6 @@ if (loginFormElement) {
         const identifier = document.getElementById('loginEmail').value.trim().toLowerCase();
         const pass = document.getElementById('loginPassword').value.trim();
 
-        // AMBIL DATA DARI FIRESTORE
         db.collection("hris_users").get().then((querySnapshot) => {
             let found = null;
             querySnapshot.forEach((doc) => {
@@ -189,6 +188,9 @@ if (loginFormElement) {
             } else {
                 alert("Email/NIP atau kata sandi salah!");
             }
+        }).catch((err) => {
+            console.error("Error login:", err);
+            alert("Gagal terhubung ke database server.");
         });
     });
 }
