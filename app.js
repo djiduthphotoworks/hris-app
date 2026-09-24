@@ -173,8 +173,12 @@ if (loginFormElement) {
         const identifier = document.getElementById('loginEmail').value.trim().toLowerCase();
         const pass = document.getElementById('loginPassword').value.trim();
 
-        // Pakai usersDB lokal agar tombol langsung responsif dan tidak crash
-        let found = usersDB.find(u => (u.email.toLowerCase() === identifier || u.nip === identifier) && u.pass === pass);
+        // Cari user dengan pengecekan aman (mencegah error jika data kosong/undefined)
+        let found = usersDB.find(u => {
+            const matchEmail = u.email && u.email.toLowerCase() === identifier;
+            const matchNip = u.nip && String(u.nip).trim() === identifier;
+            return (matchEmail || matchNip) && u.pass === pass;
+        });
 
         if (found) {
             currentUser = found;
