@@ -112,34 +112,41 @@ function initIndividualChart() {
     const selectEl = document.getElementById('selectKaryawanPerforma');
     if (!selectEl) return;
 
-    // Ambil data karyawan asli dari localStorage (sinkron dengan menu Manajemen Karyawan)
-    let employees = JSON.parse(localStorage.getItem('employees') || localStorage.getItem('hris_employees') || '[]');
+    let currentSelectedValue = selectEl.value;
 
-    // Jika localStorage kosong, gunakan data cadangan default yang sesuai
+    // Ambil murni dari localStorage key 'employees' tanpa data dummy bawaan
+    let employees = JSON.parse(localStorage.getItem('employees') || '[]');
+
+    window.employeePerformanceData = {};
+    selectEl.innerHTML = ''; // Bersihkan opsi dropdown lama
+
     if (!Array.isArray(employees) || employees.length === 0) {
-        employees = [
-            { name: 'Budi Santoso' },
-            { name: 'Siti Aminah' },
-            { name: 'adam' },
-            { name: 'ridwan' }
-        ];
+        let opt = document.createElement('option');
+        opt.value = "";
+        opt.textContent = "Belum ada data karyawan";
+        selectEl.appendChild(opt);
+        if (typeof updateIndividualChart === 'function') updateIndividualChart();
+        return;
     }
 
-    // Petakan nama karyawan asli ke data tren performa bulanan
-    window.employeePerformanceData = {};
     employees.forEach((emp, index) => {
-        let name = emp.name || emp.nama || `Karyawan ${index + 1}`;
-        window.employeePerformanceData[name] = [78, 80, 82, 85, 84, 88, 87, 90, 89, 92, 91, 94];
-    });
+        let rawName = emp.name || emp.nama || `Karyawan ${index + 1}`;
+        let empId = emp.id || emp.nip || emp.employeeId;
 
-    // Masukkan ke elemen dropdown secara dinamis
-    selectEl.innerHTML = '';
-    Object.keys(window.employeePerformanceData).forEach(name => {
+        let displayName = empId ? `${rawName} (${empId})` : rawName;
+
+        window.employeePerformanceData[displayName] = [78, 80, 82, 85, 84, 88, 87, 90, 89, 92, 91, 94];
+
         let opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
+        opt.value = displayName;
+        opt.textContent = displayName;
         selectEl.appendChild(opt);
     });
+
+    // Pertahankan pilihan sebelumnya jika masih ada di list
+    if (currentSelectedValue && window.employeePerformanceData[currentSelectedValue]) {
+        selectEl.value = currentSelectedValue;
+    }
 
     updateIndividualChart();
 }
