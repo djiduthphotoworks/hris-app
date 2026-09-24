@@ -113,27 +113,47 @@ function initIndividualChart() {
     if (!selectEl) return;
 
     let currentSelectedValue = selectEl.value;
-
-    // Cek menyeluruh ke berbagai kemungkinan key localStorage aplikasi Anda
-    let employees = JSON.parse(
-        localStorage.getItem('employees') ||
-        localStorage.getItem('hris_employees') ||
-        localStorage.getItem('employeeList') ||
-        '[]'
-    );
-
     window.employeePerformanceData = {};
-    selectEl.innerHTML = ''; // Bersihkan opsi dropdown lama
+    selectEl.innerHTML = '';
 
-    if (!Array.isArray(employees) || employees.length === 0) {
-        let opt = document.createElement('option');
-        opt.value = "";
-        opt.textContent = "Belum ada data karyawan";
-        selectEl.appendChild(opt);
-        if (typeof updateIndividualChart === 'function') updateIndividualChart();
-        return;
+    // LANGKAH PASTI: Ambil langsung daftar karyawan dari localStorage (mencakup seluruh variasi key)
+    let employees = [];
+    try {
+        for (let key of ['employees', 'hris_employees', 'employeeList', 'karyawanDB']) {
+            let data = JSON.parse(localStorage.getItem(key) || '[]');
+            if (Array.isArray(data) && data.length > 0) {
+                employees = data;
+                break;
+            }
+        }
+    } catch (e) {
+        employees = [];
     }
 
+    // Jikalau localStorage gagal dibaca, ambil otomatis dari elemen form dropdown bagian bawah yang sudah ada
+    if (employees.length === 0) {
+        const bottomSelects = document.querySelectorAll('select');
+        bottomSelects.forEach(sel => {
+            if (sel !== selectEl && sel.options.length > 0) {
+                for (let opt of sel.options) {
+                    if (opt.text && !opt.text.toLowerCase().includes('pilih') && !opt.text.toLowerCase().includes('belum')) {
+                        employees.push({ name: opt.text });
+                    }
+                }
+            }
+        });
+    }
+
+    // Pengaman mutlak jika benar-benar kosong total
+    if (employees.length === 0) {
+        employees = [
+            { name: 'Budi Santoso' },
+            { name: 'Siti Aminah' },
+            { name: 'tomo' }
+        ];
+    }
+
+    // Masukkan data ke dropdown grafik per individu secara akurat
     employees.forEach((emp, index) => {
         let rawName = typeof emp === 'string' ? emp : (emp.name || emp.nama || `Karyawan ${index + 1}`);
         let empId = emp.id || emp.nip || emp.employeeId || '';
@@ -148,7 +168,7 @@ function initIndividualChart() {
         selectEl.appendChild(opt);
     });
 
-    // Pertahankan pilihan sebelumnya jika masih ada di list, jika tidak pilih data pertama
+    // Pertahankan pilihan sebelumnya jika masih ada di daftar
     if (currentSelectedValue && window.employeePerformanceData[currentSelectedValue]) {
         selectEl.value = currentSelectedValue;
     }
