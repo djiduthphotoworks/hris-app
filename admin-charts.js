@@ -4,7 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(renderAdminCharts, 400);
-    setTimeout(initIndividualChart, 500);
+    setTimeout(initIndividualChart, 600); // Sedikit diperlambat agar elemen bawah sudah siap sepenuhnya
     window.addEventListener('storage', () => {
         renderAdminCharts();
         initIndividualChart();
@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderAdminCharts() {
-    // 1. Ambil data real cuti & klaim dari localStorage untuk Bar Chart
     let rawLeaves = JSON.parse(localStorage.getItem('leavesDB') || localStorage.getItem('hris_leaves_db') || '[]');
     let rawClaims = JSON.parse(localStorage.getItem('claimsDB') || localStorage.getItem('reimburseDB') || '[]');
 
@@ -22,7 +21,7 @@ function renderAdminCharts() {
     if (Array.isArray(rawLeaves)) {
         rawLeaves.forEach(l => {
             if (l.date || l.tanggal) {
-                let month = new Date(l.date || l.tanggal).getMonth(); // 0 - 11
+                let month = new Date(l.date || l.tanggal).getMonth();
                 if (!isNaN(month)) monthlyLeaveCounts[month]++;
             }
         });
@@ -37,7 +36,6 @@ function renderAdminCharts() {
         });
     }
 
-    // 2. Render Grafik Batang (Monthly Bar Chart)
     const ctxMonthly = document.getElementById('monthlyChart');
     if (ctxMonthly) {
         let existingChart = Chart.getChart(ctxMonthly);
@@ -48,35 +46,19 @@ function renderAdminCharts() {
             data: {
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
                 datasets: [
-                    {
-                        label: 'Cuti',
-                        data: monthlyLeaveCounts,
-                        backgroundColor: '#6366f1',
-                        borderRadius: 4
-                    },
-                    {
-                        label: 'Klaim',
-                        data: monthlyClaimCounts,
-                        backgroundColor: '#f43f5e',
-                        borderRadius: 4
-                    }
+                    { label: 'Cuti', data: monthlyLeaveCounts, backgroundColor: '#6366f1', borderRadius: 4 },
+                    { label: 'Klaim', data: monthlyClaimCounts, backgroundColor: '#f43f5e', borderRadius: 4 }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                    x: { grid: { display: false } }
-                }
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
             }
         });
     }
 
-    // 3. Render Grafik Donat (Employee Status Doughnut Chart)
     const ctxStatus = document.getElementById('statusChart');
     if (ctxStatus) {
         let existingStatusChart = Chart.getChart(ctxStatus);
@@ -86,26 +68,19 @@ function renderAdminCharts() {
             type: 'doughnut',
             data: {
                 labels: ['Aktif Bekerja', 'Sedang Cuti', 'Izin / Sakit'],
-                datasets: [{
-                    data: [8, 1, 0],
-                    backgroundColor: ['#10b981', '#f59e0b', '#6366f1'],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
+                datasets: [{ data: [8, 1, 0], backgroundColor: ['#10b981', '#f59e0b', '#6366f1'], borderWidth: 2, borderColor: '#ffffff' }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
-                },
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
                 cutout: '65%'
             }
         });
     }
 }
 
-// --- GRAFIK PERFORMA PER INDIVIDU (SINKRON DENGAN MASTER DATA) ---
+// --- GRAFIK PERFORMA PER INDIVIDU (SINKRON LANGSUNG DENGAN HALAMAN) ---
 let individualChartInstance = null;
 
 function initIndividualChart() {
@@ -116,59 +91,58 @@ function initIndividualChart() {
     window.employeePerformanceData = {};
     selectEl.innerHTML = '';
 
-    // LANGKAH PASTI: Ambil langsung daftar karyawan dari localStorage (mencakup seluruh variasi key)
-    let employees = [];
-    try {
-        for (let key of ['employees', 'hris_employees', 'employeeList', 'karyawanDB']) {
-            let data = JSON.parse(localStorage.getItem(key) || '[]');
-            if (Array.isArray(data) && data.length > 0) {
-                employees = data;
-                break;
-            }
-        }
-    } catch (e) {
-        employees = [];
-    }
+    let employeeNames = [];
 
-    // Jikalau localStorage gagal dibaca, ambil otomatis dari elemen form dropdown bagian bawah yang sudah ada
-    if (employees.length === 0) {
-        const bottomSelects = document.querySelectorAll('select');
-        bottomSelects.forEach(sel => {
-            if (sel !== selectEl && sel.options.length > 0) {
-                for (let opt of sel.options) {
-                    if (opt.text && !opt.text.toLowerCase().includes('pilih') && !opt.text.toLowerCase().includes('belum')) {
-                        employees.push({ name: opt.text });
-                    }
+    // 1. Ambil langsung opsi dari dropdown form evaluasi di bagian bawah halaman
+    const allSelects = document.querySelectorAll('select');
+    allSelects.forEach(sel => {
+        if (sel !== selectEl && sel.options && sel.options.length > 0) {
+            for (let opt of sel.options) {
+                let text = opt.text.trim();
+                let val = opt.value.trim();
+                // Validasi agar mengambil data nama karyawan yang valid
+                if (text && !text.toLowerCase().includes('pilih') && !text.toLowerCase().includes('belum') && !employeeNames.includes(text)) {
+                    employeeNames.push(text);
                 }
             }
-        });
+        }
+    });
+
+    // 2. Jika elemen bawah belum terdeteksi, ambil cadangan dari localStorage utama
+    if (employeeNames.length === 0) {
+        try {
+            for (let key of ['employees', 'hris_employees', 'employeeList', 'karyawanDB']) {
+                let data = JSON.parse(localStorage.getItem(key) || '[]');
+                if (Array.isArray(data) && data.length > 0) {
+                    data.forEach(emp => {
+                        let rawName = typeof emp === 'string' ? emp : (emp.name || emp.nama || '');
+                        let empId = emp.id || emp.nip || emp.employeeId || '';
+                        if (rawName) {
+                            let displayName = empId && !rawName.includes(empId) ? `${rawName} (${empId})` : rawName;
+                            employeeNames.push(displayName);
+                        }
+                    });
+                    break;
+                }
+            }
+        } catch (e) { }
     }
 
-    // Pengaman mutlak jika benar-benar kosong total
-    if (employees.length === 0) {
-        employees = [
-            { name: 'Budi Santoso' },
-            { name: 'Siti Aminah' },
-            { name: 'tomo' }
-        ];
+    // 3. Pengaman mutlak terakhir jika masih kosong
+    if (employeeNames.length === 0) {
+        employeeNames = ['Budi Santoso (101)', 'Siti Aminah (102)', 'tomo (2347)'];
     }
 
-    // Masukkan data ke dropdown grafik per individu secara akurat
-    employees.forEach((emp, index) => {
-        let rawName = typeof emp === 'string' ? emp : (emp.name || emp.nama || `Karyawan ${index + 1}`);
-        let empId = emp.id || emp.nip || emp.employeeId || '';
-
-        let displayName = empId && !rawName.includes(empId) ? `${rawName} (${empId})` : rawName;
-
-        window.employeePerformanceData[displayName] = [78, 80, 82, 85, 84, 88, 87, 90, 89, 92, 91, 94];
+    // Masukkan ke dropdown grafik performa
+    employeeNames.forEach(name => {
+        window.employeePerformanceData[name] = [78, 80, 82, 85, 84, 88, 87, 90, 89, 92, 91, 94];
 
         let opt = document.createElement('option');
-        opt.value = displayName;
-        opt.textContent = displayName;
+        opt.value = name;
+        opt.textContent = name;
         selectEl.appendChild(opt);
     });
 
-    // Pertahankan pilihan sebelumnya jika masih ada di daftar
     if (currentSelectedValue && window.employeePerformanceData[currentSelectedValue]) {
         selectEl.value = currentSelectedValue;
     }
@@ -206,13 +180,8 @@ function updateIndividualChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
-            },
-            scales: {
-                y: { min: 50, max: 100, grid: { color: '#f1f5f9' } },
-                x: { grid: { display: false } }
-            }
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+            scales: { y: { min: 50, max: 100, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
         }
     });
 }
