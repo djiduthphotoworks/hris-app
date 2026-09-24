@@ -64,21 +64,6 @@ window.onload = function () {
             document.getElementById('leaveNama').value = currentUser.name;
         }
 
-        if (currentUser.role === 'hr') {
-            db.collection("hris_users").onSnapshot((snapshot) => {
-                let liveUsersDB = [];
-                snapshot.forEach(doc => {
-                    liveUsersDB.push({ id: doc.id, ...doc.data() });
-                });
-                window.usersDB = liveUsersDB;
-                if (typeof renderMasterEmployeeTable === 'function') {
-                    renderMasterEmployeeTable(liveUsersDB);
-                }
-                if (typeof renderAdminDashboardStats === 'function') {
-                    renderAdminDashboardStats(liveUsersDB);
-                }
-            });
-        }
         if (document.getElementById('profileName')) {
             document.getElementById('profileName').innerText = currentUser.name;
             document.getElementById('profileDivision').innerText = currentUser.division || "Divisi Umum";
@@ -173,15 +158,8 @@ if (loginFormElement) {
         const identifier = document.getElementById('loginEmail').value.trim().toLowerCase();
         const pass = document.getElementById('loginPassword').value.trim();
 
-        // Cari user dengan pengecekan aman (mencegah error jika data kosong/undefined)
-        let found = usersDB.find(u => {
-            const matchEmail = u.email && u.email.toLowerCase() === identifier;
-            const matchNip = u.nip && String(u.nip).trim() === identifier;
-            return (matchEmail || matchNip) && u.pass === pass;
-        });
-
+        const found = usersDB.find(u => (u.email.toLowerCase() === identifier || u.nip === identifier) && u.pass === pass);
         if (found) {
-            currentUser = found;
             localStorage.setItem('hris_current_user', JSON.stringify(found));
             window.location.href = found.role === 'hr' ? 'dashboard-admin.html' : 'dashboard-karyawan.html';
         } else {
@@ -202,38 +180,35 @@ if (registerFormElement) {
         const pass = document.getElementById('regPassword').value.trim();
         const fotoInput = document.getElementById('regFoto');
 
-        const processRegister = (fotoBase64) => {
-            const newUser = {
-                name, email, nip, role, division, pass,
-                foto: fotoBase64, skor: 85.0, grade: "Grade A",
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
+        // Pastikan usersDB selalu diperbarui dari localStorage terbaru agar tidak nyangkut
+        let currentUsersDB = JSON.parse(localStorage.getItem('hris_users_db')) || [];
 
-            // SIMPAN KE FIREBASE FIRESTORE (Biar sinkron HP & PC)
-            db.collection("hris_users").add(newUser)
-                .then(() => {
-                    // Simpan juga default absensi di Firestore
-                    db.collection("hris_absensi").doc(nip).set({
-                        hadir: 0, izin: 0, sakit: 0, alfa: 0, statusHariIni: "Belum Absen"
-                    });
+        // Validasi duplikasi yang lebih aman
+        if (currentUsersDB.some(u => u.email.toLowerCase() === email || u.nip === nip)) {
+            alert("Email atau NIP sudah terdaftar di sistem! Gunakan data lain atau silakan Login.");
+            return;
+        }
 
-                    localStorage.setItem('hris_current_user', JSON.stringify(newUser));
-                    alert("Pendaftaran berhasil! Akun tersinkron ke server.");
-                    window.location.href = role === 'hr' ? 'dashboard-admin.html' : 'dashboard-karyawan.html';
-                })
-                .catch(err => {
-                    console.error("Gagal daftar:", err);
-                    alert("Terjadi kesalahan jaringan.");
-                });
+        const saveUser = (fotoBase64) => {
+            const newUser = { email, nip, pass, name, role, division, foto: fotoBase64, skor: 85.0, grade: "Grade A" };
+            currentUsersDB.push(newUser);
+            localStorage.setItem('hris_users_db', JSON.stringify(currentUsersDB));
+
+            let absensiDB = JSON.parse(localStorage.getItem('hris_absensi_db')) || {};
+            absensiDB[nip] = { hadir: 0, izin: 0, sakit: 0, alfa: 0, statusHariIni: "Belum Absen" };
+            localStorage.setItem('hris_absensi_db', JSON.stringify(absensiDB));
+
+            localStorage.setItem('hris_current_user', JSON.stringify(newUser));
+            window.location.href = role === 'hr' ? 'dashboard-admin.html' : 'dashboard-karyawan.html';
         };
 
         if (fotoInput && fotoInput.files && fotoInput.files[0]) {
             const reader = new FileReader();
-            reader.onload = e => processRegister(e.target.result);
-            reader.onerror = () => processRegister(null);
+            reader.onload = e => saveUser(e.target.result);
+            reader.onerror = () => saveUser(null);
             reader.readAsDataURL(fotoInput.files[0]);
         } else {
-            processRegister(null);
+            saveUser(null);
         }
     });
 }
