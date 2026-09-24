@@ -173,25 +173,16 @@ if (loginFormElement) {
         const identifier = document.getElementById('loginEmail').value.trim().toLowerCase();
         const pass = document.getElementById('loginPassword').value.trim();
 
-        db.collection("hris_users").get().then((querySnapshot) => {
-            let found = null;
-            querySnapshot.forEach((doc) => {
-                let u = doc.data();
-                if ((u.email.toLowerCase() === identifier || u.nip === identifier) && u.pass === pass) {
-                    found = u;
-                }
-            });
+        // Pakai usersDB lokal agar tombol langsung responsif dan tidak crash
+        let found = usersDB.find(u => (u.email.toLowerCase() === identifier || u.nip === identifier) && u.pass === pass);
 
-            if (found) {
-                localStorage.setItem('hris_current_user', JSON.stringify(found));
-                window.location.href = found.role === 'hr' ? 'dashboard-admin.html' : 'dashboard-karyawan.html';
-            } else {
-                alert("Email/NIP atau kata sandi salah!");
-            }
-        }).catch((err) => {
-            console.error("Error login:", err);
-            alert("Gagal terhubung ke database server.");
-        });
+        if (found) {
+            currentUser = found;
+            localStorage.setItem('hris_current_user', JSON.stringify(found));
+            window.location.href = found.role === 'hr' ? 'dashboard-admin.html' : 'dashboard-karyawan.html';
+        } else {
+            alert("Email/NIP atau kata sandi salah!");
+        }
     });
 }
 
