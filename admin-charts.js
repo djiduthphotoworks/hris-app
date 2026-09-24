@@ -12,8 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderAdminCharts() {
-    let rawLeaves = JSON.parse(localStorage.getItem('leavesDB') || localStorage.getItem('hris_leaves_db') || '[]');
-    let rawClaims = JSON.parse(localStorage.getItem('claimsDB') || localStorage.getItem('reimburseDB') || '[]');
+    // DISINKRONKAN DENGAN app.js: Menggunakan prefix 'hris_'
+    let rawLeaves = JSON.parse(localStorage.getItem('hris_leaves_db') || localStorage.getItem('leavesDB') || '[]');
+    let rawClaims = JSON.parse(localStorage.getItem('hris_reimburse_db') || localStorage.getItem('claimsDB') || localStorage.getItem('reimburseDB') || '[]');
 
     const monthlyLeaveCounts = new Array(12).fill(0);
     const monthlyClaimCounts = new Array(12).fill(0);
@@ -100,7 +101,6 @@ function initIndividualChart() {
             for (let opt of sel.options) {
                 let text = opt.text.trim();
                 let val = opt.value.trim();
-                // Validasi agar mengambil data nama karyawan yang valid
                 if (text && !text.toLowerCase().includes('pilih') && !text.toLowerCase().includes('belum') && !employeeNames.includes(text)) {
                     employeeNames.push(text);
                 }
@@ -108,13 +108,14 @@ function initIndividualChart() {
         }
     });
 
-    // 2. Jika elemen bawah belum terdeteksi, ambil cadangan dari localStorage utama
+    // 2. Jika elemen bawah belum terdeteksi, ambil cadangan dari localStorage (sinkron dengan hris_users_db di app.js)
     if (employeeNames.length === 0) {
         try {
-            for (let key of ['employees', 'hris_employees', 'employeeList', 'karyawanDB']) {
+            for (let key of ['hris_users_db', 'employees', 'hris_employees', 'employeeList', 'karyawanDB']) {
                 let data = JSON.parse(localStorage.getItem(key) || '[]');
                 if (Array.isArray(data) && data.length > 0) {
                     data.forEach(emp => {
+                        if (emp.role === 'hr') return;
                         let rawName = typeof emp === 'string' ? emp : (emp.name || emp.nama || '');
                         let empId = emp.id || emp.nip || emp.employeeId || '';
                         if (rawName) {
@@ -130,10 +131,9 @@ function initIndividualChart() {
 
     // 3. Pengaman mutlak terakhir jika masih kosong
     if (employeeNames.length === 0) {
-        employeeNames = ['Budi Santoso (101)', 'Siti Aminah (102)', 'tomo (2347)'];
+        employeeNames = ['Budi Santoso (101)', 'Siti Aminah (102)', 'adam (23)'];
     }
 
-    // Masukkan ke dropdown grafik performa
     employeeNames.forEach(name => {
         window.employeePerformanceData[name] = [78, 80, 82, 85, 84, 88, 87, 90, 89, 92, 91, 94];
 
