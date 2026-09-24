@@ -114,8 +114,13 @@ function initIndividualChart() {
 
     let currentSelectedValue = selectEl.value;
 
-    // Ambil murni dari localStorage key 'employees' tanpa data dummy bawaan
-    let employees = JSON.parse(localStorage.getItem('employees') || '[]');
+    // Cek menyeluruh ke berbagai kemungkinan key localStorage aplikasi Anda
+    let employees = JSON.parse(
+        localStorage.getItem('employees') ||
+        localStorage.getItem('hris_employees') ||
+        localStorage.getItem('employeeList') ||
+        '[]'
+    );
 
     window.employeePerformanceData = {};
     selectEl.innerHTML = ''; // Bersihkan opsi dropdown lama
@@ -130,10 +135,10 @@ function initIndividualChart() {
     }
 
     employees.forEach((emp, index) => {
-        let rawName = emp.name || emp.nama || `Karyawan ${index + 1}`;
-        let empId = emp.id || emp.nip || emp.employeeId;
+        let rawName = typeof emp === 'string' ? emp : (emp.name || emp.nama || `Karyawan ${index + 1}`);
+        let empId = emp.id || emp.nip || emp.employeeId || '';
 
-        let displayName = empId ? `${rawName} (${empId})` : rawName;
+        let displayName = empId && !rawName.includes(empId) ? `${rawName} (${empId})` : rawName;
 
         window.employeePerformanceData[displayName] = [78, 80, 82, 85, 84, 88, 87, 90, 89, 92, 91, 94];
 
@@ -143,7 +148,7 @@ function initIndividualChart() {
         selectEl.appendChild(opt);
     });
 
-    // Pertahankan pilihan sebelumnya jika masih ada di list
+    // Pertahankan pilihan sebelumnya jika masih ada di list, jika tidak pilih data pertama
     if (currentSelectedValue && window.employeePerformanceData[currentSelectedValue]) {
         selectEl.value = currentSelectedValue;
     }
