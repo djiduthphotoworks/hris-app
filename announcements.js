@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof db === 'undefined') return;
 
-    // 1. SINKRONISASI PENGUMUMAN REAL-TIME
+    // 1. SINKRONISASI PENGUMUMAN
     const announcementForm = document.getElementById('announcementForm');
     if (announcementForm) {
         announcementForm.addEventListener('submit', function (e) {
@@ -41,14 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. SINKRONISASI USERS & PENILAIAN KINERJA REAL-TIME
+    // 2. SINKRONISASI USERS & PENILAIAN KINERJA
     db.collection("hris_users").onSnapshot((snapshot) => {
         let cloudUsers = [];
-        snapshot.forEach(doc => {
-            let data = doc.data();
-            cloudUsers.push({ id: doc.id, ...data });
-        });
-
+        snapshot.forEach(doc => { cloudUsers.push({ id: doc.id, ...doc.data() }); });
         if (cloudUsers.length > 0) {
             window.usersDB = cloudUsers;
             localStorage.setItem('hris_users_db', JSON.stringify(cloudUsers));
@@ -70,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 3. SINKRONISASI CUTI (LEAVES) REAL-TIME
+    // 3. SINKRONISASI CUTI (LEAVES)
     db.collection("hris_leaves").onSnapshot((snapshot) => {
         let cloudLeaves = [];
         snapshot.forEach(doc => { cloudLeaves.push({ id: doc.id, ...doc.data() }); });
@@ -89,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 4. SINKRONISASI KLAIM (REIMBURSE) REAL-TIME
+    // 4. SINKRONISASI KLAIM (REIMBURSE)
     db.collection("hris_reimburse").onSnapshot((snapshot) => {
         let cloudClaims = [];
         snapshot.forEach(doc => { cloudClaims.push({ id: doc.id, ...doc.data() }); });
@@ -107,46 +103,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// ==========================================
-// OVERRIDE FUNGSI ADMIN & KARYAWAN KE FIRESTORE
-// ==========================================
+// INTERSEPSI AKSI TOMBOL ADMIN & FORM KARYAWAN
+document.addEventListener('click', function (e) {
+    if (!e.target) return;
 
-// A. Override Simpan Penilaian Kinerja Admin
-window.simpanPenilaianDetail = function () {
-    let selectKaryawan = document.getElementById('appraisalNip');
-    if (!selectKaryawan) return;
+    // Simpan Penilaian Kinerja oleh Admin ke Firestore
+    if (e.target.textContent && e.target.textContent.includes('Simpan Penilaian Kinerja')) {
+        let selectKaryawan = document.getElementById('appraisalNip');
+        if (!selectKaryawan) return;
 
-    let nipKaryawan = selectKaryawan.value;
-    let namaKaryawan = selectKaryawan.options[selectKaryawan.selectedIndex].text;
+        let nipKaryawan = selectKaryawan.value;
+        let elSkorTotal = document.getElementById('skorTotal');
+        let skorText = elSkorTotal ? elSkorTotal.innerText : "85";
+        let nilaiAngka = parseFloat(skorText) || 85;
+        let gradeText = document.getElementById('gradeHasil') ? document.getElementById('gradeHasil').innerText : "Grade A";
 
-    let elSkorTotal = document.getElementById('skorTotal');
-    let skorText = elSkorTotal ? elSkorTotal.innerText : "85";
-    let nilaiAngka = parseFloat(skorText) || 85;
-    let gradeText = document.getElementById('gradeHasil') ? document.getElementById('gradeHasil').innerText : "Grade A";
-
-    // Simpan langsung ke Firestore collection "hris_users"
-    db.collection("hris_users").where("nip", "==", nipKaryawan).get()
-        .then((querySnapshot) => {
-            if (querySnapshot.empty) {
-                alert("Data karyawan tidak ditemukan di server online!");
-                return;
-            }
-            querySnapshot.forEach((doc) => {
-                db.collection("hris_users").doc(doc.id).update({
-                    skor: nilaiAngka,
-                    grade: gradeText
-                }).then(() => {
-                    alert("Data penilaian kinerja untuk " + namaKaryawan + " berhasil disimpan dan disinkronkan ke server online!");
+        db.collection("hris_users").where("nip", "==", nipKaryawan).get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    db.collection("hris_users").doc(doc.id).update({
+                        skor: nilaiAngka,
+                        grade: gradeText
+                    });
                 });
             });
-        })
-        .catch((err) => {
-            console.error("Gagal update nilai ke server:", err);
-            alert("Gagal menyinkronkan ke server online.");
-        });
-};
+    }
+});
 
-// B. Intersepsi Form Pengajuan Cuti & Klaim oleh Karyawan agar masuk ke Firestore
+// Pengajuan Cuti & Klaim Online oleh Karyawan
 document.addEventListener('submit', function (e) {
     if (typeof db === 'undefined') return;
 
@@ -166,7 +150,7 @@ document.addEventListener('submit', function (e) {
         };
 
         db.collection("hris_leaves").add(newLeave).then(() => {
-            alert("Permohonan cuti berhasil dikirim ke server HR secara online!");
+            alert("Permohonan cuti berhasil dikirim ke server HR!");
             e.target.reset();
             document.getElementById('leaveNama').value = currentUser.name;
         });
