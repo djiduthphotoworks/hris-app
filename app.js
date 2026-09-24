@@ -180,16 +180,21 @@ if (registerFormElement) {
         const pass = document.getElementById('regPassword').value.trim();
         const fotoInput = document.getElementById('regFoto');
 
-        if (usersDB.some(u => u.email.toLowerCase() === email || u.nip === nip)) {
-            alert("Email atau NIP sudah terdaftar!");
+        // Pastikan usersDB selalu diperbarui dari localStorage terbaru agar tidak nyangkut
+        let currentUsersDB = JSON.parse(localStorage.getItem('hris_users_db')) || [];
+
+        // Validasi duplikasi yang lebih aman
+        if (currentUsersDB.some(u => u.email.toLowerCase() === email || u.nip === nip)) {
+            alert("Email atau NIP sudah terdaftar di sistem! Gunakan data lain atau silakan Login.");
             return;
         }
 
         const saveUser = (fotoBase64) => {
             const newUser = { email, nip, pass, name, role, division, foto: fotoBase64, skor: 85.0, grade: "Grade A" };
-            usersDB.push(newUser);
-            localStorage.setItem('hris_users_db', JSON.stringify(usersDB));
+            currentUsersDB.push(newUser);
+            localStorage.setItem('hris_users_db', JSON.stringify(currentUsersDB));
 
+            let absensiDB = JSON.parse(localStorage.getItem('hris_absensi_db')) || {};
             absensiDB[nip] = { hadir: 0, izin: 0, sakit: 0, alfa: 0, statusHariIni: "Belum Absen" };
             localStorage.setItem('hris_absensi_db', JSON.stringify(absensiDB));
 
